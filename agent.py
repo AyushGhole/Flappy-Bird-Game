@@ -58,17 +58,26 @@ class Agent:
 
         for episode in itertools.count(): 
 
-            state, _ = env.reset() 
+            state, _ = env.reset()  
+            state = torch.tensor(state, dtype=torch.float, device=device)
+
             episode_rewards = 0
             terminated = False
 
             while not terminated: 
                 if is_training and random.random() < epsilon: 
                     action = env.action_space.sample()  
+                    action = torch.tensor(action, dtype=torch.long, device=device)
                 else: 
-                    action = policy_dqn(state).argmax()
+                    with torch.no_grad():   
+                        action = policy_dqn(state.unsqueeze(dim=0)).squeeze().argmax()
 
-                next_state, reward, terminated, _, _ = env.step(action)
+                next_state, reward, terminated, _, _ = env.step(action.item()) 
+
+                #create our tensors 
+                reward = torch.tensor(reward, dtype=torch.float, device=device)
+                next_state = torch.tensor(next_state, dtype=torch.float, device=device)
+
 
                 if is_training: 
                     memory.append((state, action,  next_state, reward, terminated)) 
@@ -76,5 +85,9 @@ class Agent:
                     state = next_state
                     episode_rewards += reward
 
-            print(f"for episode={episode+1} with total rewards={episode_rewards} & epsilon={epsilon}")
+            print(f"for episode={episode+1} with total rewards={episode_rewards} & epsilon={epsilon}") 
+
+            #Epsilon Deccay code 
+            epsilon = max(epsilon * self.epsilon_decay, self.epsilon_min) 
+             
             # env.close() 
