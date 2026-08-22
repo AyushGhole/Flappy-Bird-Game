@@ -13,7 +13,7 @@ while True:
     action = env.action_space.sample()
 
     # Processing:
-    obs, reward, terminated, _, info = env.step(action)
+    obs, reward, terminated, _, _ = env.step(action)
     
     # Checking if the player is still alive
     if terminated:
