@@ -8,6 +8,9 @@ import torch
 import torch.nn as nn 
 import torch.optim as optim
 import random
+import os 
+import argparse 
+
 
 if torch.backends.mps.is_available(): 
     device = "mps" 
@@ -15,6 +18,9 @@ elif torch.cuda.is_available():
     device = "cuda" 
 else: 
     device = "cpu" 
+
+RUNS_DIR = "runs" 
+os.makedirs(RUNS_DIR, exist_ok=True) 
 
 
 class Agent:
@@ -40,7 +46,10 @@ class Agent:
 
         self.loss_fn = nn.MSELoss() 
         self.optimizer = None
-        
+
+        self.LOG_FILE = os.path.join(RUNS_DIR, f"{self.param_set}.log")  
+        self.MODEL_FILE = os.path.join(RUNS_DIR, f"{self.param_set}.pt")  
+
 
     def run(self, is_training=True, render=False): 
         env = gym.make("FlappyBird-v0", render_mode="human" if render else None ) 
@@ -62,7 +71,12 @@ class Agent:
             steps = 0 
 
             self.optimizer = optim.Adam(policy_dqn.parameters(), lr=self.alpha)   
-
+            best_reward = float("-inf") 
+        else: 
+            #best policy load  
+            policy_dqn.load_state_dict(torch.load(self.MODEL_FILE)) 
+            policy_dqn.eval() 
+            
 
 
         for episode in itertools.count(): 
@@ -70,7 +84,7 @@ class Agent:
             state, _ = env.reset()  
             state = torch.tensor(state, dtype=torch.float, device=device)
 
-            episode_rewards = 0
+            episode_reward = 0
             terminated = False
 
             while not terminated: 
@@ -93,13 +107,23 @@ class Agent:
                     steps += 1
 
                 state = next_state
-                episode_rewards += reward
+                episode_reward += reward
 
-            print(f"for episode={episode+1} with total rewards={episode_rewards} & epsilon={epsilon}") 
+            print(f"for episode={episode+1} with total rewards={episode_reward} & epsilon={epsilon}") 
 
             if is_training:
                 #Epsilon Deccay code 
-                epsilon = max(epsilon * self.epsilon_decay, self.epsilon_min) 
+                epsilon = max(epsilon * self.epsilon_decay, self.epsilon_min)  
+
+                if episode_reward > best_reward: 
+                    log_msg = f"best reward = {episode_reward} for episode = {episode+1}." 
+
+                    with open("LOG_FILE", "a")  as f: 
+                        f.write(log_msg, "\n")  
+
+                    torch.save(policy_dqn.state_dict(), self.MODEL_FILE)
+                    best_reward = episode_reward
+
 
             if is_training and  len(memory) > self.mini_batch_size: 
                 #get sample  
