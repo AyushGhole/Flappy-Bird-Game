@@ -76,7 +76,7 @@ class Agent:
             #best policy load  
             policy_dqn.load_state_dict(torch.load(self.MODEL_FILE)) 
             policy_dqn.eval() 
-            
+
 
 
         for episode in itertools.count(): 
@@ -87,7 +87,7 @@ class Agent:
             episode_reward = 0
             terminated = False
 
-            while not terminated: 
+            while (not terminated and episode_reward < self.reward_threshold) : 
                 if is_training and random.random() < epsilon: 
                     action = env.action_space.sample()  
                     action = torch.tensor(action, dtype=torch.long, device=device)
@@ -97,18 +97,18 @@ class Agent:
 
                 next_state, reward, terminated, _, _ = env.step(action.item()) 
 
+                episode_reward += reward
+                 
                 #create our tensors 
                 reward = torch.tensor(reward, dtype=torch.float, device=device)
                 next_state = torch.tensor(next_state, dtype=torch.float, device=device)
-
 
                 if is_training: 
                     memory.append((state, action,  next_state, reward, terminated)) 
                     steps += 1
 
                 state = next_state
-                episode_reward += reward
-
+                
             print(f"for episode={episode+1} with total rewards={episode_reward} & epsilon={epsilon}") 
 
             if is_training:
@@ -129,7 +129,7 @@ class Agent:
                 #get sample  
                 mini_batch = memory.sample(self.mini_batch_size) 
 
-                optimize(mini_batch, policy_dqn, target_dqn) 
+                self.optimize(mini_batch, policy_dqn, target_dqn) 
 
                 #syn the networks 
                 if steps > self.network_sync_rate: 
