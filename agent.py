@@ -12,8 +12,8 @@ while True:
     # (feed the observation to your agent here)
     action = env.action_space.sample()
 
-    # Processing:
-    obs, reward, terminated, _, _ = env.step(action)
+    # Processing: terminated => Done
+    next_state, reward, terminated, _, _ = env.step(action)
     
     # Checking if the player is still alive
     if terminated:
