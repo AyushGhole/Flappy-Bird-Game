@@ -13,8 +13,13 @@ env = gym.make("FlappyBird-v0", render_mode="human")
 
 state, _ = env.reset() 
 
-def run():
-    env = gym.make("FlappyBird-v0", render_mode="human")
+def run(self, is_training=True, render=False):
+    env = gym.make("FlappyBird-v0", render_mode="human" if render else None ) 
+
+    num_states = env.observation_space.shape[0] 
+    num_actions = env.observation_space.n
+    
+    policy_dqn = DQN(num_states, num_actions)
 
     state, _ = env.reset() 
 
