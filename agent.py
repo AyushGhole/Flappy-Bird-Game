@@ -7,7 +7,7 @@ import yaml
 import torch 
 import torch.nn as nn 
 import torch.optim as optim
-
+import random
 
 if torch.backends.mps.is_available(): 
     device = "mps" 
@@ -37,6 +37,9 @@ class Agent:
         self.network_sync_rate = params["network_sync_rate"] 
 
         self.reward_threshold = params["reward_threshold"] 
+
+        self.loss_fn = nn.MSELoss() 
+        self.optimizer = None
         
 
     def run(self, is_training=True, render=False): 
@@ -49,7 +52,8 @@ class Agent:
 
     
         if is_training: 
-            memory = ReplayMemory(self.replay_memory_size)     
+            memory = ReplayMemory(self.replay_memory_size) 
+            epsilon = self.epsilon_init     
 
 
         for episode in itertools.count(): 
@@ -58,16 +62,19 @@ class Agent:
             episode_rewards = 0
             terminated = False
 
-            while not terminated:
-                action = env.action_space.sample()
+            while not terminated: 
+                if is_training and random.random() < epsilon: 
+                    action = env.action_space.sample()  
+                else: 
+                    action = policy_dqn(state).argmax()
 
                 next_state, reward, terminated, _, _ = env.step(action)
 
                 if is_training: 
                     memory.append((state, action,  next_state, reward, terminated)) 
 
-                    state = new_state
+                    state = next_state
                     episode_rewards += reward
 
-            print(f"for episode={episode+1} with total rewards={episode_rewards}")
+            print(f"for episode={episode+1} with total rewards={episode_rewards} & epsilon={epsilon}")
             # env.close() 
