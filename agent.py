@@ -19,7 +19,7 @@ def run(self, is_training=True, render=False):
     num_states = env.observation_space.shape[0] 
     num_actions = env.observation_space.n
     
-    policy_dqn = DQN(num_states, num_actions)
+    policy_dqn = DQN(num_states, num_actions).to(device)  #input 
 
     state, _ = env.reset() 
 
@@ -35,4 +35,4 @@ def run(self, is_training=True, render=False):
         if terminated:
             break
 
-    env.close()
+    env.close() 
