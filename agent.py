@@ -17,7 +17,28 @@ else:
     device = "cpu" 
 
 
-class Agent: 
+class Agent:
+    def __init__(self, params_set): 
+        self.param.set = params_set 
+
+        with open("parameters.yaml", "r") as f: 
+            all_params_set = yaml.safe.load(f) 
+            params = all_params_set[params_set]  
+        
+        self.alpha = params["alpha"]
+        self.gamma = params["gamma"]
+
+        self.epsilon_init = params["epsilon_init"]
+        self.epsilon_min = params["epsilon_min"]
+        self.epsilon_decay = params["epsilon_decay"]
+
+        self.replay_memory_size = params["replay_memory_size"]
+        self.mini_batch_size = params["mini_batch_size"]
+        self.network_sync_rate = params["network_sync_rate"] 
+
+        self.reward_threshold = params["reward_threshold"] 
+        
+
     def run(self, is_training=True, render=False): 
         env = gym.make("FlappyBird-v0", render_mode="human" if render else None ) 
 
@@ -28,7 +49,7 @@ class Agent:
 
     
         if is_training: 
-            memory = ReplayMemory(10000)     
+            memory = ReplayMemory(self.replay_memory_size)     
 
 
         for episode in itertools.count(): 
