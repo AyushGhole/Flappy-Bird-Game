@@ -29,21 +29,19 @@ def run(self, is_training=True, render=False):
     for episode in itertools.count(): 
 
         state, _ = env.reset() 
-        
+        episode_rewards = 0
+        terminated = False
 
-        while True:
-            # Next action:
-            # (feed the observation to your agent here)
+        while not terminated:
             action = env.action_space.sample()
 
-            # Processing: terminated => Done  
             next_state, reward, terminated, _, _ = env.step(action)
 
             if is_training: 
-                memory.append((state, action,  next_state, reward, terminated))
-    
-            # Checking if the player is still alive
-            if terminated:
-                break
+                memory.append((state, action,  next_state, reward, terminated)) 
 
+            state = new_state
+            episode_rewards += reward
+
+        print(f"for episode={episode+1} with total rewards={episode_rewards}")
     # env.close() 
