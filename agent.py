@@ -3,6 +3,8 @@ import gymnasium as gym
 from dqn import DQN 
 from experience_replay import ReplayMemory 
 import itertools
+import yaml
+import torch
 
 if torch.backends.mps.is_available(): 
     device = "mps" 
