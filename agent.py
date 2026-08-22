@@ -2,9 +2,11 @@ import flappy_bird_gymnasium
 import gymnasium as gym
 
 
-env = gym.make("FlappyBird-v0", render_mode="human", use_lidar=True)
+env = gym.make("FlappyBird-v0", render_mode="human")
 
-obs, _ = env.reset()
+state, _ = env.reset() 
+
+
 while True:
     # Next action:
     # (feed the observation to your agent here)
