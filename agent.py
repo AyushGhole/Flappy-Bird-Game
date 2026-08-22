@@ -133,4 +133,17 @@ class Agent:
             self.optimizer.zero_grad() 
             loss.backward() 
             self.optimizer.step() 
-            
+
+if __name__ == "__main__": 
+    #Parse command line inputs 
+    parser = argparse.ArgumentParser(description='Train or Test model.') 
+    parser.add_argument('hyperparameters', help='')  
+    parser.add_argument('--train', help='Training mode', action='store_true') 
+    args = parser.parse_args()
+
+    dql = Agent(params_set=args.hyperparameters) 
+
+    if args.train: 
+        dql.run(is_training=True)
+    else: 
+        dql.run(is_training=False, render=True)  
