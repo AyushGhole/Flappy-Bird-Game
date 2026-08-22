@@ -10,7 +10,6 @@ else:
 
 env = gym.make("FlappyBird-v0", render_mode="human")
 
-
 state, _ = env.reset() 
 
 while True:
