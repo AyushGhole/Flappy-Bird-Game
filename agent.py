@@ -55,6 +55,15 @@ class Agent:
             memory = ReplayMemory(self.replay_memory_size) 
             epsilon = self.epsilon_init     
 
+            target_dqn = DQN(num_states, num_actions).to(device) 
+            #copy the wt and bias vals from policy => target
+            target_dqn.load_state_dict(policy_dqn.state_dict()) 
+
+            steps = 0 
+
+            self.optimizer = optim.Adam(policy_dqn.parameters(), lr=self.alpha)   
+
+
 
         for episode in itertools.count(): 
 
@@ -81,13 +90,47 @@ class Agent:
 
                 if is_training: 
                     memory.append((state, action,  next_state, reward, terminated)) 
+                    steps += 1
 
-                    state = next_state
-                    episode_rewards += reward
+                state = next_state
+                episode_rewards += reward
 
             print(f"for episode={episode+1} with total rewards={episode_rewards} & epsilon={epsilon}") 
 
-            #Epsilon Deccay code 
-            epsilon = max(epsilon * self.epsilon_decay, self.epsilon_min) 
-             
+            if is_training:
+                #Epsilon Deccay code 
+                epsilon = max(epsilon * self.epsilon_decay, self.epsilon_min) 
+
+            if is_training and  len(memory) > self.mini_batch_size: 
+                #get sample  
+                mini_batch = memory.sample(self.mini_batch_size) 
+
+                optimize(mini_batch, policy_dqn, target_dqn) 
+
+                #syn the networks 
+                if steps > self.network_sync_rate: 
+                    target_dqn.load_state_dict(policy_dqn.state_dict())
+                    step = 0  
+
             # env.close() 
+    
+    def optimize(self, mini_batch, policy_dqn, target_dqn): 
+        #get the experiences  
+        for state, action, next_state, reward, terminated in mini_batch:
+
+            if terminated: 
+                target = reward
+            else: 
+                with torch.no_grad(): 
+                    target_q = reward + self.gamma * target_dqn(next_state).max() 
+
+            current_q = policy_dqn(state) 
+
+
+            #loss compute  
+            loss = self.loss_fn(current_q, target_q) 
+
+            self.optimizer.zero_grad() 
+            loss.backward() 
+            self.optimizer.step() 
+            
