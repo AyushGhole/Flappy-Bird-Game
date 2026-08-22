@@ -13,7 +13,6 @@ else:
 
 def run(self, is_training=True, render=False): 
 
-
     env = gym.make("FlappyBird-v0", render_mode="human" if render else None ) 
 
     num_states = env.observation_space.shape[0] 
