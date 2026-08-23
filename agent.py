@@ -107,7 +107,7 @@ class Agent:
 
                 state = next_state
                 
-            print(f"episode={episode+1} with total reward={episode_reward} & epsilon={epsilon}")
+            print(f"episode={episode+1} with total reward={episode_reward}.")
 
             if is_training:
                 # epsilon decay
